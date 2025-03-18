@@ -17,6 +17,26 @@ COUPLING_BETWEEN_OBJECTS = st.number_input("Coupling Between Objects", min_value
 maxHALSTEAD_DIFFICULTY = st.number_input("Max Halstead Difficulty", min_value=0.0, max_value=1000.0, step=0.1)
 maxNUM_OPERANDS = st.number_input("Max Num Operands", min_value=0.0, max_value=1000.0, step=0.1)
 
+try:
+    df = pd.read_csv("promise_dataset.csv")  # Load the dataset to get mean values
+    mean_values = df.mean()  # Compute mean values for all features
+except:
+    mean_values = {feature: 0 for feature in range(95)}  # If dataset is not available, use zeros
+
+# **📌 Step 3: Construct the Full Feature Array (User Inputs + Default Values)**
+full_feature_list = []  # Stores all 95 features
+for feature in range(95):  # Loop through all expected 95 features
+    feature_name = f"Feature_{feature+1}"  # Placeholder name
+
+    if feature_name in selected_features:
+        full_feature_list.append(user_inputs[feature_name])  # Add user input
+    else:
+        full_feature_list.append(mean_values.get(feature_name, 0))  # Use mean or zero
+
+
+# Convert to NumPy array
+user_input_array = np.array([full_feature_list]).astype(np.float32)
+
 # Compute fuzzy feature (same logic as in training)
 def fuzzy_membership(value, feature, low_threshold, medium_threshold):
     if value <= low_threshold[feature]:
@@ -42,9 +62,7 @@ refined_fuzzy_defect_likelihood = np.mean([
     fuzzy_membership(maxNUM_OPERANDS, 'maxNUM_OPERANDS', low_threshold, medium_threshold)
 ])
 
-# Convert input to numpy array
-user_input = np.array([[maxNUM_UNIQUE_OPERANDS, maxNUM_UNIQUE_OPERATORS, COUPLING_BETWEEN_OBJECTS,
-                        maxHALSTEAD_DIFFICULTY, maxNUM_OPERANDS, refined_fuzzy_defect_likelihood]])
+
 
 # Predict on button click
 if st.button("Predict Software Reliability"):
