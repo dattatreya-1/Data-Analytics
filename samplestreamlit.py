@@ -9,17 +9,9 @@ Original file is located at
 import streamlit as st
 import pandas as pd
 
-st.title("🔍 Software Reliability Prediction")
-
-uploaded_file = st.file_uploader("Upload your dataset (CSV)", type=['csv'])
-
-if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)  # Read uploaded file
-    st.write("Preview of Data:")
-    st.dataframe(df.head())  # Show first 5 rows
 
 import pandas as pd
-df = pd.read_csv('promise_dataset.csv')
+df = pd.read_csv('promise_dataset.csv')  # Load file from GitHub repo
 
 df.head()
 
