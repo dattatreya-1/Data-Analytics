@@ -37,6 +37,7 @@ if uploaded_file is not None:
 for image_batch, label_batch in train_ds.take(1):
     st.write(f"🖼 Batch Shape: {image_batch.shape}")
     st.write(f"🏷 Labels: {label_batch.numpy()}")  # Ensure labels are valid integers
+st.write(f"Total Training Batches: {len(train_ds)}")
 
 
 # Check if extraction has already been done
