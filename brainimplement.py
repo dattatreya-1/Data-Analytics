@@ -79,6 +79,9 @@ class_names = train_ds.class_names
 num_classes = len(class_names)
 print("📌 Detected Classes:", class_names)
 
+st.write(f"Train Dataset: {train_ds}")
+st.write(f"Test Dataset: {test_ds}")
+
 # ✅ Step 5: Define CNN Model
 model = keras.Sequential([
     layers.Rescaling(1./255, input_shape=(224, 224, 3)),  # Normalize pixel values
