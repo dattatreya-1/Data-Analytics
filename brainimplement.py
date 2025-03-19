@@ -13,10 +13,28 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 from PIL import Image
+import streamlit as st
+import zipfile
+import os
 
-# ✅ Step 1: Extract ZIP File
-zip_path = "/content/ccn_brain_images.zip"  # Replace with your uploaded file name
-extract_path = "/content/dataset"  # Define extraction location
+st.title("Upload Brain Tumor Dataset")
+
+# File uploader
+uploaded_file = st.file_uploader("Upload ZIP file of dataset", type=["zip"])
+
+if uploaded_file is not None:
+    zip_path = os.path.join("temp_dataset.zip")  # Save to temporary directory
+
+    with open(zip_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+
+    extract_path = "dataset"
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(extract_path)
+
+    st.success("✅ Dataset extracted successfully!")
+    st.write("Extracted folders:", os.listdir(extract_path))
+
 
 # Check if extraction has already been done
 if not os.path.exists(extract_path):
