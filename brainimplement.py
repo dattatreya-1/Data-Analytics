@@ -59,19 +59,30 @@ for folder_name in os.listdir(extract_path):
 # ✅ Step 3: Load Dataset for Training
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 32
+import tensorflow as tf
+import streamlit as st
+
+BATCH_SIZE = 8  # Keep it small to avoid memory errors
+IMG_SIZE = (224, 224)
+
 try:
+    st.write(f"Loading dataset from: {extract_path}")
+
     train_ds = tf.keras.preprocessing.image_dataset_from_directory(
         extract_path,
         validation_split=0.2,
         subset="training",
         seed=123,
-        image_size=(224, 224),
-        batch_size=8
+        image_size=IMG_SIZE,
+        batch_size=BATCH_SIZE
     )
+    
     st.write("✅ Training dataset loaded successfully!")
     st.write(f"Total Training Batches: {len(train_ds)}")
+
 except Exception as e:
     st.error(f"⚠️ Error loading training dataset: {e}")
+
 
 
 test_ds = tf.keras.preprocessing.image_dataset_from_directory(
