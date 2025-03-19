@@ -85,6 +85,8 @@ print("📌 Detected Classes:", class_names)
 
 st.write(f"Train Dataset: {train_ds}")
 st.write(f"Test Dataset: {test_ds}")
+st.write(f"Total Training Batches: {len(train_ds)}")
+
 
 # ✅ Step 5: Define CNN Model
 model = keras.Sequential([
