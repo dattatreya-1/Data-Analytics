@@ -68,6 +68,13 @@ IMG_SIZE = (224, 224)
 try:
     st.write(f"Loading dataset from: {extract_path}")
 
+   import streamlit as st
+import tensorflow as tf
+
+BATCH_SIZE = 8  # Reduce batch size to avoid memory errors
+IMG_SIZE = (224, 224)
+
+try:
     train_ds = tf.keras.preprocessing.image_dataset_from_directory(
         extract_path,
         validation_split=0.2,
@@ -76,12 +83,16 @@ try:
         image_size=IMG_SIZE,
         batch_size=BATCH_SIZE
     )
-    
     st.write("✅ Training dataset loaded successfully!")
-    st.write(f"Total Training Batches: {len(train_ds)}")
+
+    # ✅ Check first batch of data
+    for image_batch, label_batch in train_ds.take(1):
+        st.write(f"🖼 Image Batch Shape: {image_batch.shape}")  # Expected: (batch_size, 224, 224, 3)
+        st.write(f"🏷 Label Batch: {label_batch.numpy()}")  # Should contain integers
 
 except Exception as e:
     st.error(f"⚠️ Error loading training dataset: {e}")
+
 
 
 
