@@ -34,6 +34,9 @@ if uploaded_file is not None:
 
     st.success("✅ Dataset extracted successfully!")
     st.write("Extracted folders:", os.listdir(extract_path))
+for image_batch, label_batch in train_ds.take(1):
+    st.write(f"🖼 Batch Shape: {image_batch.shape}")
+    st.write(f"🏷 Labels: {label_batch.numpy()}")  # Ensure labels are valid integers
 
 
 # Check if extraction has already been done
