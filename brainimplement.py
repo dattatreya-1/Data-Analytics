@@ -68,7 +68,7 @@ IMG_SIZE = (224, 224)
 try:
     st.write(f"Loading dataset from: {extract_path}")
 
-   import streamlit as st
+import streamlit as st
 import tensorflow as tf
 
 BATCH_SIZE = 8  # Reduce batch size to avoid memory errors
