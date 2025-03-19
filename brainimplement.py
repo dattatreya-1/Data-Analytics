@@ -87,6 +87,8 @@ st.write(f"Train Dataset: {train_ds}")
 st.write(f"Test Dataset: {test_ds}")
 st.write(f"Total Training Batches: {len(train_ds)}")
 
+st.write("Extracted dataset folders:", os.listdir(extract_path))
+
 
 # ✅ Step 5: Define CNN Model
 model = keras.Sequential([
