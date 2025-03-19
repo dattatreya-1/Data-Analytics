@@ -59,15 +59,20 @@ for folder_name in os.listdir(extract_path):
 # ✅ Step 3: Load Dataset for Training
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 32
+try:
+    train_ds = tf.keras.preprocessing.image_dataset_from_directory(
+        extract_path,
+        validation_split=0.2,
+        subset="training",
+        seed=123,
+        image_size=(224, 224),
+        batch_size=8
+    )
+    st.write("✅ Training dataset loaded successfully!")
+    st.write(f"Total Training Batches: {len(train_ds)}")
+except Exception as e:
+    st.error(f"⚠️ Error loading training dataset: {e}")
 
-train_ds = tf.keras.preprocessing.image_dataset_from_directory(
-    extract_path,
-    validation_split=0.2,  # 20% for validation
-    subset="training",
-    seed=123,
-    image_size=IMG_SIZE,
-    batch_size=BATCH_SIZE
-)
 
 test_ds = tf.keras.preprocessing.image_dataset_from_directory(
     extract_path,
