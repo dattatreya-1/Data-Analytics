@@ -1,100 +1,96 @@
-import streamlit as st
 import zipfile
 import os
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 from PIL import Image
-import numpy as np
 
-st.title("Brain Tumor Classification")
+# ✅ Step 1: Extract ZIP File
+zip_path = "/content/ccn_brain_images.zip"  # Replace with your uploaded file name
+extract_path = "/content/dataset"  # Define extraction location
 
-# ✅ File uploader for dataset ZIP
-uploaded_file = st.file_uploader("Upload ZIP file of dataset", type=["zip"])
-
-if uploaded_file is not None:
-    zip_path = "dataset.zip"  # Save uploaded file
-
-    with open(zip_path, "wb") as f:
-        f.write(uploaded_file.getbuffer())
-
-    extract_path = "dataset"
+# Check if extraction has already been done
+if not os.path.exists(extract_path):
     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
         zip_ref.extractall(extract_path)
+    print("✅ Dataset extracted successfully!")
 
-    st.success("✅ Dataset extracted successfully!")
-    st.write("Extracted folders:", os.listdir(extract_path))
+# ✅ Step 2: Verify Extracted Folders
+print("Extracted Folders:", os.listdir(extract_path))
 
-# ✅ Check dataset before loading
-if not os.path.exists(extract_path):
-    st.error("⚠️ Dataset path NOT found! Please check ZIP extraction.")
+# Check if images exist inside class folders
+for folder_name in os.listdir(extract_path):
+    folder_path = os.path.join(extract_path, folder_name)
+    if os.path.isdir(folder_path):  # Check if it's a directory
+        image_count = sum(1 for filename in os.listdir(folder_path) if filename.endswith(('.jpg', '.png', '.jpeg')))
+        print(f"📂 Folder '{folder_name}' contains {image_count} images.")
 
-# ✅ Load Dataset
+# ✅ Step 3: Load Dataset for Training
 IMG_SIZE = (224, 224)
-BATCH_SIZE = 8  # Reduce batch size to prevent memory issues
+BATCH_SIZE = 32
 
-try:
-    train_ds = tf.keras.preprocessing.image_dataset_from_directory(
-        extract_path,
-        validation_split=0.2,
-        subset="training",
-        seed=123,
-        image_size=IMG_SIZE,
-        batch_size=BATCH_SIZE
-    )
+train_ds = tf.keras.preprocessing.image_dataset_from_directory(
+    extract_path,
+    validation_split=0.2,  # 20% for validation
+    subset="training",
+    seed=123,
+    image_size=IMG_SIZE,
+    batch_size=BATCH_SIZE
+)
 
-    test_ds = tf.keras.preprocessing.image_dataset_from_directory(
-        extract_path,
-        validation_split=0.2,
-        subset="validation",
-        seed=123,
-        image_size=IMG_SIZE,
-        batch_size=BATCH_SIZE
-    )
+test_ds = tf.keras.preprocessing.image_dataset_from_directory(
+    extract_path,
+    validation_split=0.2,
+    subset="validation",
+    seed=123,
+    image_size=IMG_SIZE,
+    batch_size=BATCH_SIZE
+)
 
-    st.write("✅ Dataset loaded successfully!")
-    class_names = train_ds.class_names
-    num_classes = len(class_names)
-    st.write(f"📌 Detected Classes: {class_names}")
+# ✅ Step 4: Get Class Names
+class_names = train_ds.class_names
+num_classes = len(class_names)
+print("📌 Detected Classes:", class_names)
 
-    # ✅ Display a sample batch
-    for image_batch, label_batch in train_ds.take(1):
-        st.write(f"🖼 Batch Shape: {image_batch.shape}")
-        st.write(f"🏷 Labels: {label_batch.numpy()}")  # Ensure labels are valid integers
+# ✅ Step 5: Define CNN Model
+model = keras.Sequential([
+    layers.Rescaling(1./255, input_shape=(224, 224, 3)),  # Normalize pixel values
 
-except Exception as e:
-    st.error(f"⚠️ Error loading training dataset: {e}")
+    layers.Conv2D(32, (3, 3), activation='relu'),
+    layers.MaxPooling2D(2, 2),
 
-# ✅ Load Pre-Trained Model Instead of Training in Streamlit
-@st.cache_resource
-def load_trained_model():
-    model_path = "brain_tumor_model.h5"  # Load the saved model
-    if not os.path.exists(model_path):
-        st.error("⚠️ Trained model not found! Please train in Google Colab and upload.")
-    return keras.models.load_model(model_path)
+    layers.Conv2D(64, (3, 3), activation='relu'),
+    layers.MaxPooling2D(2, 2),
 
-# ✅ Use the pre-trained model for prediction
-model = load_trained_model()
+    layers.Conv2D(128, (3, 3), activation='relu'),
+    layers.MaxPooling2D(2, 2),
 
-# ✅ Streamlit UI for Image Upload & Prediction
-st.subheader("Upload an Image for Prediction")
+    layers.Flatten(),
+    layers.Dense(128, activation='relu'),
+    layers.Dropout(0.5),  # Prevent overfitting
+    layers.Dense(num_classes, activation='softmax')  # Output layer for classification
+])
 
-uploaded_image = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"])
+# ✅ Step 6: Compile Model
+model.compile(
+    optimizer='adam',
+    loss='sparse_categorical_crossentropy',  # Change to categorical_crossentropy if labels are one-hot encoded
+    metrics=['accuracy']
+)
 
-if uploaded_image is not None:
-    img = Image.open(uploaded_image).convert("RGB")
-    st.image(img, caption="Uploaded Image", use_column_width=True)
+# Show Model Summary
+model.summary()
 
-    # ✅ Preprocess image
-    img = img.resize((224, 224))
-    img_array = np.array(img) / 255.0  # Normalize
-    img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
+# ✅ Step 7: Train the Model
+epochs = 10
+history = model.fit(train_ds, epochs=epochs, validation_data=test_ds, verbose=1)
 
-    # ✅ Make prediction
-    prediction = model.predict(img_array)
-    predicted_class = class_names[np.argmax(prediction)]
-    confidence = np.max(prediction) * 100
+# ✅ Step 8: Evaluate the Model
+loss, accuracy = model.evaluate(test_ds, verbose=1)
+print("🎯 Test Loss:", loss)
+print("🎯 Test Accuracy:", accuracy)
 
-    # ✅ Show result
-    st.write(f"Prediction: **{predicted_class}**")
-    st.write(f"Confidence: **{confidence:.2f}%**")
+# ✅ Step 9: Save the Model
+model.save("/content/brain_tumor_model.h5")
+print("✅ Model saved successfully!")
+
