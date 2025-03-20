@@ -25,9 +25,7 @@ for folder_name in os.listdir(extract_path):
         image_count = sum(1 for filename in os.listdir(folder_path) if filename.endswith(('.jpg', '.png', '.jpeg')))
         print(f"📂 Folder '{folder_name}' contains {image_count} images.")
 
-# ✅ Step 3: Load Dataset for Training
-IMG_SIZE = (224, 224)
-BATCH_SIZE = 32
+
 
 train_ds = tf.keras.preprocessing.image_dataset_from_directory(
     extract_path,
